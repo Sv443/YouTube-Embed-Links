@@ -69,7 +69,6 @@ document.addEventListener("DOMContentLoaded", () => {
  * Checks if the src is a valid YT embed URL, then extracts the ID and adds an element externally linking to the video.
  */
 function handleIframe(el) {
-  console.log(consolePrefix, ">>1");
   if(el.classList.contains(checkedClassName))
     return;
 
