@@ -4,7 +4,7 @@ Should work on any page.
 
 <br>
 
-<img src="./ytel-example.jpg" width="500" alt="Example image" />
+![Example image](./ytel-example.jpg)
 
 <br>
 
