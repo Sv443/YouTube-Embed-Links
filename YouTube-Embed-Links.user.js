@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name        YouTube Embed Links
-// @description Adds a link to each YouTube embed, in case the "Sign in to confirm you're not a bot" message pops up
+// @description Adds a link to each YouTube embed iframe, in case the "Sign in to confirm you're not a bot" message pops up.
 // @namespace   https://github.com/Sv443
 // @match       https://*/*
 // @grant       none
-// @version     0.1.0
+// @version     0.2.0
 // @author      Sv443
 // @license     MIT
 // @run-at      document-start
-// @require     https://update.greasyfork.org/scripts/472956/1772359/UserUtils.js
+// @require     https://cdn.jsdelivr.net/npm/@sv443-network/userutils@10.6.0/dist/UserUtils.user.js
 // ==/UserScript==
 
 /**
@@ -43,7 +43,7 @@ const checkedClassName = `checked-embed-link-${UserUtils.randomId(8, 36)}`;
 
 /** Patterns that indicate whether an iframe's src is a valid YT embed URL. */
 const srcPatterns = [
-  /^https?:\/\/(?:www\.)?youtube(?:-nocookie)?\.com\/embed\/([a-zA-Z0-9_-]+)/,
+  /^https?:\/\/(?:(?:www|m)\.)?youtu(?:\.?be|be(?:-nocookie)?\.com)\/embed\/([a-zA-Z0-9_-]+)/,
 ];
 
 /** Script entrypoint. */
@@ -86,17 +86,17 @@ function handleIframe(el) {
   }
 }
 
-/** Extracts the video ID from the iframe src URL. Simple heuristic that checks for last pathname segment, then the ?q search param. */
+/** Extracts the video ID from the iframe src URL. Simple heuristic that checks for last pathname segment, then the ?v search param. */
 function getVideoIdFromIframeSrc(src) {
   const url = new URL(src);
+
+  const paramId = url.searchParams?.v?.trim();
+  if(typeof paramId === "string" && isValidVideoId(paramId))
+    return paramId;
 
   const pathnameId = url.pathname.split("/").at(-1)?.trim();
   if(typeof pathnameId === "string" && isValidVideoId(pathnameId))
     return pathnameId;
-
-  const paramId = url.searchParams?.q?.trim();
-  if(typeof paramId === "string" && isValidVideoId(paramId))
-    return paramId;
 }
 
 /** Adds an anchor element after the iframe to externally link to the video page. */
@@ -116,7 +116,7 @@ function addExtVideoLinkToIframe(ifrEl, vidId) {
   removeEl.classList.add("ytel-remove-iframe-link");
   removeEl.href = "#";
   removeEl.textContent = "[×]";
-  removeEl.title = removeEl.ariaLabel = "Click to remove this link.";
+  removeEl.title = removeEl.ariaLabel = "Click to dismiss this link. Reload the tab to bring it back.";
   removeEl.addEventListener("click", (e) => {
     e.preventDefault();
     e.stopImmediatePropagation();
