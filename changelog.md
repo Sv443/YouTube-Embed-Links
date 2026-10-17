@@ -1,3 +1,8 @@
+## 1.0.1
+- Fixed script sandboxing issue.
+
+<br>
+
 ## 1.0.0
 - Added support for many more URL parameters, like `t`, `time_continue`, `list`, `index`, `start_radio`, and more.
     - The `start` parameter will be renamed to `t`.

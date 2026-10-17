@@ -11,6 +11,7 @@
 // @supportURL  https://github.com/Sv443/YouTube-Embed-Links/issues
 // @updateURL   https://github.com/Sv443/YouTube-Embed-Links/raw/refs/heads/main/YouTube-Embed-Links.user.js
 // @match       https://*/*
+// @grant       none
 // @run-at      document-start
 // @require     https://cdn.jsdelivr.net/npm/@sv443-network/userutils@11.0.0/dist/UserUtils.user.js
 // ==/UserScript==
