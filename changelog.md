@@ -1,7 +1,14 @@
+## 1.0.0
+- Added support for many more URL parameters, like `t`, `time_continue`, `list`, `index`, `start_radio`, and more.
+    - The `start` parameter will be renamed to `t`.
+- Added some metadata tags, like `@homepageURL`, `@supportURL`, `@updateURL` and more.
+
+<br>
+
 ## 0.2.0
-- Fixed `?v` parameter resolution.
+- Fixed video ID resolution.
 - Improved tooltip texts.
-- Made URL matchin pattern broader. `m.youtube.com` is now also supported.
+- Made URL matching pattern broader. `m.youtube.com` is now also supported.
 
 <br>
 

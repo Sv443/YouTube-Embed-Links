@@ -1,14 +1,18 @@
 // ==UserScript==
 // @name        YouTube Embed Links
-// @description Adds a link to each YouTube embed iframe, in case the "Sign in to confirm you're not a bot" message pops up.
+// @version     1.0.0
 // @namespace   https://github.com/Sv443
-// @match       https://*/*
-// @grant       none
-// @version     0.2.0
-// @author      Sv443
+// @description Adds a link to each YouTube embed iframe, in case the "Sign in to confirm you're not a bot" message pops up.
 // @license     MIT
+// @author      Sv443
+// @source      https://github.com/Sv443/YouTube-Embed-Links
+// @homepage    https://github.com/Sv443/YouTube-Embed-Links
+// @homepageURL https://github.com/Sv443/YouTube-Embed-Links
+// @supportURL  https://github.com/Sv443/YouTube-Embed-Links/issues
+// @updateURL   https://github.com/Sv443/YouTube-Embed-Links/raw/refs/heads/main/YouTube-Embed-Links.user.js
+// @match       https://*/*
 // @run-at      document-start
-// @require     https://cdn.jsdelivr.net/npm/@sv443-network/userutils@10.6.0/dist/UserUtils.user.js
+// @require     https://cdn.jsdelivr.net/npm/@sv443-network/userutils@11.0.0/dist/UserUtils.user.js
 // ==/UserScript==
 
 /**
@@ -46,6 +50,18 @@ const srcPatterns = [
   /^https?:\/\/(?:(?:www|m)\.)?youtu(?:\.?be|be(?:-nocookie)?\.com)\/embed\/([a-zA-Z0-9_-]+)/,
 ];
 
+/** Keys of extra URL parameters to also transfer to the link besides just `?v`. */
+const extraParams = [
+  "t", "start", "time_continue", "list", "listType",
+  "index", "start_radio", "lc", "ab_channel", "hl",
+  "gl", "app", "sub_confirmation",
+];
+
+/** Keys of parameters that should be renamed if present. The keys also have to be present in {@linkcode extraParams}. */
+const renameParams = {
+  "start": "t",
+};
+
 /** Script entrypoint. */
 document.addEventListener("DOMContentLoaded", () => {
   const obs = new UserUtils.SelectorObserver(document.body, {
@@ -62,11 +78,15 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   UserUtils.addGlobalStyle(globalStyle).classList.add("ytel-style");
+
+  console.log(consolePrefix, "Successfully initialized.");
 });
 
 /**
  * Gets called with each found iframe element.
  * Checks if the src is a valid YT embed URL, then extracts the ID and adds an element externally linking to the video.
+ * @param {HTMLElement} el The `<iframe>` to check
+ * @return {void}
  */
 function handleIframe(el) {
   if(el.classList.contains(checkedClassName))
@@ -82,11 +102,17 @@ function handleIframe(el) {
     if(!vidId)
       return console.warn(consolePrefix, "Couldn't extract video ID from iframe:", el);
 
-    addExtVideoLinkToIframe(el, vidId);
+    const extraParams = getExtraParamsFromIframeSrc(el.src);
+
+    addExtVideoLinkToIframe(el, vidId, extraParams);
   }
 }
 
-/** Extracts the video ID from the iframe src URL. Simple heuristic that checks for last pathname segment, then the ?v search param. */
+/**
+ * Extracts the video ID from the iframe src URL. Simple heuristic that checks for last pathname segment, then the ?v search param.
+ * @param {string} src The `src` prop of the `<iframe>`
+ * @return {string}
+ */
 function getVideoIdFromIframeSrc(src) {
   const url = new URL(src);
 
@@ -99,14 +125,36 @@ function getVideoIdFromIframeSrc(src) {
     return pathnameId;
 }
 
-/** Adds an anchor element after the iframe to externally link to the video page. */
-function addExtVideoLinkToIframe(ifrEl, vidId) {
+/**
+ * Creates a URL parameter string from any parameters in the given `src` whose keys are in {@linkcode extraParams}
+ * @param {string} src The `src` prop of the `<iframe>`
+ * @return {string}
+ */
+function getExtraParamsFromIframeSrc(src) {
+  const { searchParams, pathname } = new URL(src);
+  return extraParams.reduce((a, key) => {
+    const val = searchParams.get(key);
+    if(!val)
+      return a;
+
+    return `${a}&${renameParams?.[key] ?? key}=${val}`;
+  }, "");
+}
+
+/**
+ * Adds an anchor element after the iframe to externally link to the video page.
+ * @param {HTMLElement} ifrEl The `<iframe>` to modify
+ * @param {string} vidId ID of the video playing in the `<iframe>`
+ * @param {string} [extraParams] Optional string of extra parameters to include in the link - format: `&p1=v1&p2=v2...`
+ * @returns {void}
+ */
+function addExtVideoLinkToIframe(ifrEl, vidId, extraParams) {
   const linkContEl = document.createElement("span");
   linkContEl.classList.add("ytel-iframe-link-container");
 
   const linkEl = document.createElement("a");
   linkEl.classList.add("ytel-iframe-link");
-  linkEl.href = `https://www.youtube.com/watch?v=${vidId}`;
+  linkEl.href = `https://www.youtube.com/watch?v=${vidId}${extraParams??""}`;
   linkEl.target = "_blank";
   linkEl.rel = "noopener noreferrer";
   linkEl.textContent = "Open in new tab";
@@ -132,7 +180,10 @@ function addExtVideoLinkToIframe(ifrEl, vidId) {
   console.log(consolePrefix, "Successfully added link element to iframe:", ifrEl);
 }
 
-/** Checks if the given string is a valid YT video ID. */
+/**
+ * Checks if the given string is a valid YT video ID.
+ * @param {string} id Video ID
+ */
 function isValidVideoId(id) {
   return /^[a-zA-Z0-9_-]+$/.test(id);
 }
