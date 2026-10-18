@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        YouTube Embed Links
-// @version     1.0.0
+// @version     1.0.1
 // @namespace   https://github.com/Sv443
 // @description Adds a link to each YouTube embed iframe, in case the "Sign in to confirm you're not a bot" message pops up.
 // @license     MIT
